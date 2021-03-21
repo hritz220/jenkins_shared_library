@@ -1,11 +1,22 @@
 #!/usr/bin/env groovy
 
-import org.apache.commons.lang.StringUtils
+node("master") {
+    echo "Loading local shared library"
+    checkout scm
 
-def call(String filter_string, int occurrence) {
-    def logs = currentBuild.rawBuild.getLog(10000).join('\n')
-    int count = StringUtils.countMatches(logs, filter_string);
-    if (count > occurrence -1) {
-        currentBuild.result='UNSTABLE'
-    }
+    // Create new git repo inside jenkins subdirectory
+    sh("""cd ./$libraryPath && \
+            (rm -rf .git || true) && \
+            git init && \
+            git add --all && \
+            git commit -m init
+    """)
+    def repoPath = sh(returnStdout: true, script: 'pwd').trim() + "/$libraryPath"
+
+    library identifier: 'local-lib@master', 
+            retriever: modernSCM([$class: 'GitSCMSource', remote: "$repoPath"]), 
+            changelog: false
+
+    deleteDir() // After loading the library we can clean the workspace
+    echo "Done loading shared library"
 }
