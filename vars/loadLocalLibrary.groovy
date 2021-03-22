@@ -11,7 +11,7 @@ def call(GitSCM scm, String libraryPath, String masterNode = 'master') {
 				(rm -rf .git || true) && \
 				git init && \
 				git add --all && \
-				git commit -m "test"
+				git commit -m init
 		""")
 		def repoPath = sh(returnStdout: true, script: 'pwd').trim() + "/$libraryPath"
 
